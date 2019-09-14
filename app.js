@@ -4,6 +4,7 @@ const app =express();
 var http = require('http').createServer(app);
 
 const io = require('socket.io')(http);
+const users = {};
 
 app.get('/', (req, res) => {
     console.log('hello');
@@ -13,15 +14,25 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('New connection');
-    socket.on('disconnect', function(){
-        console.log('user disconnected');
-      });
+   
     socket.on('chat-from-client', (chat) => {
         console.log('chat msg from client------', chat);
         // io.emit('chat message', chat); -----broadcast to all including sender
-
-        socket.broadcast.emit('chat-from-server', chat);  // ----broadcast to all except sender
+        socket.broadcast.emit('chat-from-server', {
+            chat: chat,
+            name: users[socket.id] 
+        });  // ----broadcast to all except sender
     });
+    socket.on('new-user', (name) => {
+        users[socket.id] = name;
+        console.log('new name', name);
+        socket.broadcast.emit('user-connected', name);
+    });
+    socket.on('disconnect', function(){
+        console.log('user disconnected');
+        socket.broadcast.emit('user-disconnected', users[socket.id]);
+        delete users[socket.id];
+      });
 });
 
 http.listen(3000, function () {

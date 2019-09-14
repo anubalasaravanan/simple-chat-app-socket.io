@@ -36,15 +36,28 @@
 const messageContainer = document.getElementById('message-container');
 const messageForm = document.getElementById('form-container');
 const message = document.getElementById('message');
+const name = prompt('Whats your sweet name?');
+  appendMessage(`You joined`);
+  console.log('name-joined---', name);
+  socket.emit('new-user', name);
 
 socket.on('chat-from-server', (chat) => {
     console.log('received msg', chat);
-    appendMessage(chat);
+    appendMessage(`${chat.name} : ${chat.chat}`);
+});
+socket.on('user-connected', (user) => {
+    console.log('received user name', user);
+    appendMessage(`${user} joined our chat`);
+});
+socket.on('user-disconnected', (user) => {
+    console.log('received user name', user);
+    appendMessage(`${user} left our chat`);
 });
 messageForm.addEventListener('submit', e => {
   message1 = message.value
   console.log('message---', message1);
     e.preventDefault();
+    appendMessage(`You:${message1}`);
     socket.emit('chat-from-client', message1);
     message.value='';
 });
