@@ -22,8 +22,12 @@
   <form id='form-container'>
     <form action="#">
       <div class="mdl-textfield mdl-js-textfield">
+        
+        <!-- <input class="mdl-textfield__input" type="text" id="handle"> -->
         <input class="mdl-textfield__input" type="text" id="message">
+        
         <label class="mdl-textfield__label" for="message">Text...</label>
+        <div id='feedback'></div>
       </div>
     </form>
     
@@ -39,66 +43,91 @@
 const messageContainer = document.getElementById('message-container');
 const messageForm = document.getElementById('form-container');
 const message = document.getElementById('message');
+var showTyping = document.getElementById('feedback');
+
+// const handle = document.getElementById('handle');
 const name = prompt('Whats your sweet name?');
-  appendMessage(`You joined`);
+  appendMessage(`You joined`, 'center');
   console.log('name-joined---', name);
   socket.emit('new-user', name);
   
 socket.on('chat-from-server', (chat) => {
+  showTyping.innerHTML = ''
     console.log('received msg', chat);
     appendMessage(`${chat.name} : ${chat.chat}`);
 });
 socket.on('user-connected', (user) => {
     console.log('received user name', user);
-    appendMessage(`${user} joined our chat`);
+    appendMessage(`${user} joined our chat`, 'center');
 });
 socket.on('user-disconnected', (user) => {
     console.log('received user name', user);
-    appendMessage(`${user} left our chat`);
+    appendMessage(`${user} left our chat`, 'center');
 });
+socket.on('typing', (typing) => {
+ showTyping.innerHTML = `${typing.user} is typing...`
+})
 socket.on('img-chunk', (chunk) => {
   
-  var imgtag = document.createElement('img');
-
   for (let key in chunk) {
-    console.log('key', key);
-    // console.log('key chunk', chunk[key]);
     imgChunks.push(chunk[key]);
   }
-  console.log('imgChunks', imgChunks)
+  var imgtag = document.createElement('img');
   imgtag.setAttribute('src', 'data:image/jpeg;base64,' + window.btoa(imgChunks));
+  messageContainer.append(imgtag);
   imgChunks=[];
   chunks=[];
-  console.log('chunks cleared', imgChunks);
-  messageContainer.append(imgtag);
 });
+// function timeoutFunction() {
+//   socket.emit("typing", false);
+// }
+messageForm.addEventListener('keypress',function() {
+ socket.emit('typing', message.value);
+ showTyping.innerHTML = '<p><em> You are typing...</em></p>'
+
+//  clearTimeout(timeout)
+//  timeout = setTimeout(timeoutFunction, 2000)
+})
 messageForm.addEventListener('submit', e => {
   message1 = message.value
   console.log('message---', message1);
+  showTyping.innerHTML = '';
+  var handle = document.getElementById('handle')
     e.preventDefault();
-    appendMessage(`You:${message1}`);
-    socket.emit('chat-from-client', message1);
+    appendMessage(`You:${message1}`, 'right');
+    socket.emit('chat-from-client', {
+      message : message.value
+      // handle : handle.value
+    });
     message.value='';
 });
 
-function appendMessage (message) {
+function appendMessage (message, align) {
+  
     const messageElement = document.createElement('div');
+    messageElement.setAttribute('align', align);
     messageElement.innerText = message;
+    // messageElement.setAttribute('align', 'center');
     messageContainer.append(messageElement);
 };
 function imageUpload () {
-  console.log('uploadimage called');
+  console.log('uploadimage called', document.getElementById("upload-id").files);
+  let path = document.getElementById("upload-id").value;
   let photo = document.getElementById("upload-id").files[0];
   let formData = new FormData();
   console.log('photoname', photo.name);
   formData.append("photo", photo);
 
   socket.emit('image-upload-from-client', {photo:photo, imgName:photo.name});
+  var imgtag = document.createElement('img');
+  // imgtag.setAttribute('src', './91A9LEQYjYL._UL1500_.jpg');
+  imgtag.setAttribute('src', path + '/' + photo.name);
+  messageContainer.append(imgtag);
  
-  console.log('photo', photo);
-  console.log('name', photo.name);
 }
   </script>
 </body>
 
 </html>
+
+<!-- use setattribute to set color, alignment of texts -->

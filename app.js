@@ -16,11 +16,7 @@ app.get('/', (req, res) => {
 
     res.sendFile(__dirname + '/index.html');
 });
-app.get('/:img', (req, res) => {
-    console.log('hello', req.param);
 
-    res.sendFile(__dirname + '/index.html');
-});
 io.on('connection', (socket) => {
     console.log('New connection');
 
@@ -28,10 +24,17 @@ io.on('connection', (socket) => {
         console.log('chat msg from client------', chat);
         // io.emit('chat message', chat); -----broadcast to all including sender
         socket.broadcast.emit('chat-from-server', {
-            chat: chat,
-            name: users[socket.id] 
+            chat: chat.message,
+            name: users[socket.id],
+            id: socket.id 
         });  // ----broadcast to all except sender
     });
+    socket.on('typing', (typingValue) => {
+        socket.broadcast.emit('typing', {
+            typingValue: typingValue,
+            user: users[socket.id]        
+        });
+    })
     socket.on('new-user', (name) => {
         users[socket.id] = name;
         console.log('new name', name);
