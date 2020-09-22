@@ -1,133 +1,131 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <title>Socket.IO chat</title>
-  
   </head>
- 
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-<body>
-  <div id="message-container"></div>
-  <br>
-  <br>
-  <br>
-  <label>Upload File: <input type="file" id="upload-id" accept="image/*"/></label>
-  <button id="imageButton" onclick="imageUpload()"
-   class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
-    <i class="material-icons">add</i>
-  </button>
 
-  <form id='form-container'>
-    <form action="#">
-      <div class="mdl-textfield mdl-js-textfield">
-        
-        <!-- <input class="mdl-textfield__input" type="text" id="handle"> -->
-        <input class="mdl-textfield__input" type="text" id="message">
-        
-        <label class="mdl-textfield__label" for="message">Text...</label>
-        <div id='feedback'></div>
-      </div>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+  />
+  <link
+    rel="stylesheet"
+    href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css"
+  />
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  <style>
+    img {
+      border-radius: 8px;
+    }
+  </style>
+
+  <body>
+    <div id="message-container"></div>
+    <br />
+    <br />
+    <br />
+    <label
+      >Upload File: <input type="file" id="upload-id" accept="image/*"
+    /></label>
+    <button
+      id="imageButton"
+      onclick="imageUpload()"
+      class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored"
+    >
+      <i class="material-icons">add</i>
+    </button>
+
+    <form id="form-container">
+      <form action="#">
+        <div class="mdl-textfield mdl-js-textfield">
+          <!-- <input class="mdl-textfield__input" type="text" id="handle"> -->
+          <input class="mdl-textfield__input" type="text" id="message" />
+
+          <label class="mdl-textfield__label" for="message">Text...</label>
+          <div id="feedback"></div>
+        </div>
+      </form>
+
+      <button id="sendButton" type="submit">Send</button>
     </form>
-    
-    <button id='sendButton' type='submit'>Send</button>
-  </form>
 
-  <script src="/socket.io/socket.io.js"></script>
- 
-  <script>
+    <script src="/socket.io/socket.io.js"></script>
 
-  const socket = io();
-  var imgChunks = [];
-const messageContainer = document.getElementById('message-container');
-const messageForm = document.getElementById('form-container');
-const message = document.getElementById('message');
-var showTyping = document.getElementById('feedback');
+    <script>
+      const socket = io();
+      var imgChunks = [];
+      const messageContainer = document.getElementById("message-container");
+      const messageForm = document.getElementById("form-container");
+      const message = document.getElementById("message");
+      var showTyping = document.getElementById("feedback");
 
-// const handle = document.getElementById('handle');
-const name = prompt('Whats your sweet name?');
-  appendMessage(`You joined`, 'center');
-  console.log('name-joined---', name);
-  socket.emit('new-user', name);
-  
-socket.on('chat-from-server', (chat) => {
-  showTyping.innerHTML = ''
-    console.log('received msg', chat);
-    appendMessage(`${chat.name} : ${chat.chat}`);
-});
-socket.on('user-connected', (user) => {
-    console.log('received user name', user);
-    appendMessage(`${user} joined our chat`, 'center');
-});
-socket.on('user-disconnected', (user) => {
-    console.log('received user name', user);
-    appendMessage(`${user} left our chat`, 'center');
-});
-socket.on('typing', (typing) => {
- showTyping.innerHTML = `${typing.user} is typing...`
-})
-socket.on('img-chunk', (chunk) => {
-  
-  for (let key in chunk) {
-    imgChunks.push(chunk[key]);
-  }
-  var imgtag = document.createElement('img');
-  imgtag.setAttribute('src', 'data:image/jpeg;base64,' + window.btoa(imgChunks));
-  messageContainer.append(imgtag);
-  imgChunks=[];
-  chunks=[];
-});
-// function timeoutFunction() {
-//   socket.emit("typing", false);
-// }
-messageForm.addEventListener('keypress',function() {
- socket.emit('typing', message.value);
- showTyping.innerHTML = '<p><em> You are typing...</em></p>'
+      // const handle = document.getElementById('handle');
+      const name = prompt("Whats your sweet name?");
+      appendMessage(`You joined`, "center");
+      console.log("name-joined---", name);
+      socket.emit("new-user", name);
 
-//  clearTimeout(timeout)
-//  timeout = setTimeout(timeoutFunction, 2000)
-})
-messageForm.addEventListener('submit', e => {
-  message1 = message.value
-  console.log('message---', message1);
-  showTyping.innerHTML = '';
-  var handle = document.getElementById('handle')
-    e.preventDefault();
-    appendMessage(`You:${message1}`, 'right');
-    socket.emit('chat-from-client', {
-      message : message.value
-      // handle : handle.value
-    });
-    message.value='';
-});
+      socket.on("chat-from-server", (chat) => {
+        showTyping.innerHTML = "";
+        console.log("received msg", chat);
+        appendMessage(`${chat.name} : ${chat.chat}`);
+      });
+      socket.on("user-connected", (user) => {
+        console.log("received user name", user);
+        appendMessage(`${user} joined our chat`, "center");
+      });
+      socket.on("user-disconnected", (user) => {
+        console.log("received user name", user);
+        appendMessage(`${user} left our chat`, "center");
+      });
+      socket.on("typing", (typing) => {
+        showTyping.innerHTML = `${typing.user} is typing...`;
+      });
+      socket.on("image-from-server", (info) => {
+        if (info.image) {
+          var img = document.createElement("img");
+          img.src = "data:image/jpeg;base64," + info.buffer;
+          messageContainer.appendChild(img);
+        }
+      });
 
-function appendMessage (message, align) {
-  
-    const messageElement = document.createElement('div');
-    messageElement.setAttribute('align', align);
-    messageElement.innerText = message;
-    // messageElement.setAttribute('align', 'center');
-    messageContainer.append(messageElement);
-};
-function imageUpload () {
-  console.log('uploadimage called', document.getElementById("upload-id").files);
-  let path = document.getElementById("upload-id").value;
-  let photo = document.getElementById("upload-id").files[0];
-  let formData = new FormData();
-  console.log('photoname', photo.name);
-  formData.append("photo", photo);
+      messageForm.addEventListener("keypress", function () {
+        socket.emit("typing", message.value);
+        showTyping.innerHTML = "<p><em> You are typing...</em></p>";
+      });
 
-  socket.emit('image-upload-from-client', {photo:photo, imgName:photo.name});
-  var imgtag = document.createElement('img');
-  // imgtag.setAttribute('src', './91A9LEQYjYL._UL1500_.jpg');
-  imgtag.setAttribute('src', path + '/' + photo.name);
-  messageContainer.append(imgtag);
- 
-}
-  </script>
-</body>
+      messageForm.addEventListener("submit", (e) => {
+        message1 = message.value;
+        showTyping.innerHTML = "";
+        var handle = document.getElementById("handle");
+        e.preventDefault();
+        appendMessage(`You:${message1}`, "right");
+        socket.emit("chat-from-client", {
+          message: message.value,
+        });
+        message.value = "";
+      });
 
+      function appendMessage(message, align) {
+        const messageElement = document.createElement("div");
+        messageElement.setAttribute("align", align);
+        messageElement.innerText = message;
+        messageContainer.append(messageElement);
+      }
+      function imageUpload() {
+        let path = document.getElementById("upload-id").value;
+        let photo = document.getElementById("upload-id").files[0];
+        socket.emit("image-upload-from-client", {
+          photo: photo,
+          imgName: photo.name,
+        });
+
+        var imageElement = document.createElement("img");
+        imageElement.src = photo.name;
+        messageContainer.appendChild(imageElement);
+      }
+    </script>
+  </body>
 </html>
 
 <!-- use setattribute to set color, alignment of texts -->
